@@ -5,13 +5,14 @@ env = gym.make("MountainCar-v0").env
 print(env.observation_space)
 #Learning parameters
 alpha = 0.7
-discount_factor = 0.618
-epsilon = 1
+discount_factor = 1
+epsilon = 0.8
 max_epsilon = 1
 min_epsilon = 0.01
 decay = 0.01
 
-train_episode = 10000
+train_episode = 2000
+train_policy = 10000
 test_episode = 1000
 max_steps = 100
 
@@ -45,8 +46,8 @@ for episode in range(train_episode):
     state = env.reset()
     
     total_training_rewards = 0
-
-    for step in range(100):
+    alpha = max(0.01, 1*(0.85**(episode//100)))
+    for step in range(train_policy):
         #Choosing between exploit or explore
         tradeoff = np.random.uniform(0,1)
         a,b = obs_to_state(state)
@@ -77,14 +78,15 @@ for episode in range(train_episode):
 
     training_rewards.append(total_training_rewards)
     epsilons.append(epsilon)
-
+solution_policy = np.argmax(Q, axis=2)
 print(f"Training score over time: {sum(training_rewards)/train_episode}")
 
 is_done = False
 state = env.reset()
 while(not is_done):
     a,b = obs_to_state(state)
-    action = np.argmax(Q[a,b,:])
+    action = solution_policy[a,b]
+    time.sleep(0.05)
     env.render()
     state, _, is_done, _ = env.step(action)
 env.close()
